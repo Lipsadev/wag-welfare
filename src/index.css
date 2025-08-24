@@ -8,33 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 45 25% 98%;
+    --foreground: 25 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 25 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 25 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 25 95% 48%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 120 15% 85%;
+    --secondary-foreground: 25 15% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 45 15% 92%;
+    --muted-foreground: 25 8% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 25 75% 65%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 45 15% 88%;
+    --input: 45 15% 88%;
+    --ring: 25 95% 48%;
+
+    /* Custom PawRescue colors */
+    --primary-warm: 25 95% 48%;
+    --primary-soft: 25 75% 65%;
+    --sage: 120 25% 75%;
+    --sage-dark: 120 35% 55%;
+    --cream: 45 35% 95%;
+    --earth: 30 45% 35%;
+    
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--primary-warm)), hsl(var(--primary-soft)));
+    --gradient-sage: linear-gradient(135deg, hsl(var(--sage)), hsl(var(--sage-dark)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary-warm) / 0.9), hsl(var(--sage) / 0.9));
+    
+    /* Shadows */
+    --shadow-warm: 0 10px 30px -10px hsl(var(--primary-warm) / 0.3);
+    --shadow-gentle: 0 4px 20px -8px hsl(var(--earth) / 0.2);
 
     --radius: 0.5rem;
 
@@ -56,33 +73,50 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 25 15% 8%;
+    --foreground: 45 25% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 25 15% 12%;
+    --card-foreground: 45 25% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 25 15% 12%;
+    --popover-foreground: 45 25% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 25 85% 55%;
+    --primary-foreground: 25 15% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 25 10% 20%;
+    --secondary-foreground: 45 25% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 25 10% 18%;
+    --muted-foreground: 45 8% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 25 65% 50%;
+    --accent-foreground: 45 25% 95%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 45 25% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 25 10% 25%;
+    --input: 25 10% 25%;
+    --ring: 25 85% 55%;
+
+    /* Custom dark mode colors */
+    --primary-warm: 25 85% 55%;
+    --primary-soft: 25 65% 50%;
+    --sage: 120 20% 45%;
+    --sage-dark: 120 25% 35%;
+    --cream: 45 15% 15%;
+    --earth: 30 25% 75%;
+    
+    /* Dark gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--primary-warm)), hsl(var(--primary-soft)));
+    --gradient-sage: linear-gradient(135deg, hsl(var(--sage)), hsl(var(--sage-dark)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary-warm) / 0.8), hsl(var(--sage) / 0.8)));
+    
+    /* Dark shadows */
+    --shadow-warm: 0 10px 30px -10px hsl(var(--primary-warm) / 0.4);
+    --shadow-gentle: 0 4px 20px -8px hsl(var(--primary-warm) / 0.3);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
