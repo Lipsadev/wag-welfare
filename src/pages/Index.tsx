@@ -5,6 +5,7 @@ import AdoptionSection from "@/components/AdoptionSection";
 import VolunteerSection from "@/components/VolunteerSection";
 import DonationSection from "@/components/DonationSection";
 import Footer from "@/components/Footer";
+import ChatBubble from "@/components/ChatBubble";
 
 const Index = () => {
   return (
@@ -16,6 +17,7 @@ const Index = () => {
       <VolunteerSection />
       <DonationSection />
       <Footer />
+      <ChatBubble />
     </div>
   );
 };
