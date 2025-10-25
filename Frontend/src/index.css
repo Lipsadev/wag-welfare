@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 45 25% 98%;
+    --foreground: 25 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 15% 15%;
+
+    --primary: 25 95% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 120 15% 85%;
+    --secondary-foreground: 25 15% 15%;
+
+    --muted: 45 15% 92%;
+    --muted-foreground: 25 8% 45%;
+
+    --accent: 25 75% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 45 15% 88%;
+    --input: 45 15% 88%;
+    --ring: 25 95% 48%;
+
+    /* Custom PawRescue colors */
+    --primary-warm: 25 95% 48%;
+    --primary-soft: 25 75% 65%;
+    --sage: 120 25% 75%;
+    --sage-dark: 120 35% 55%;
+    --cream: 45 35% 95%;
+    --earth: 30 45% 35%;
+
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--primary-warm)), hsl(var(--primary-soft)));
+    --gradient-sage: linear-gradient(135deg, hsl(var(--sage)), hsl(var(--sage-dark)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary-warm) / 0.9), hsl(var(--sage) / 0.9));
+
+    /* Shadows */
+    --shadow-warm: 0 10px 30px -10px hsl(var(--primary-warm) / 0.3);
+    --shadow-gentle: 0 4px 20px -8px hsl(var(--earth) / 0.2);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 25 15% 8%;
+    --foreground: 45 25% 95%;
+
+    --card: 25 15% 12%;
+    --card-foreground: 45 25% 95%;
+
+    --popover: 25 15% 12%;
+    --popover-foreground: 45 25% 95%;
+
+    --primary: 25 85% 55%;
+    --primary-foreground: 25 15% 8%;
+
+    --secondary: 25 10% 20%;
+    --secondary-foreground: 45 25% 85%;
+
+    --muted: 25 10% 18%;
+    --muted-foreground: 45 8% 65%;
+
+    --accent: 25 65% 50%;
+    --accent-foreground: 45 25% 95%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 45 25% 95%;
+
+    --border: 25 10% 25%;
+    --input: 25 10% 25%;
+    --ring: 25 85% 55%;
+
+    /* Custom dark mode colors */
+    --primary-warm: 25 85% 55%;
+    --primary-soft: 25 65% 50%;
+    --sage: 120 20% 45%;
+    --sage-dark: 120 25% 35%;
+    --cream: 45 15% 15%;
+    --earth: 30 25% 75%;
+
+    /* Dark gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--primary-warm)), hsl(var(--primary-soft)));
+    --gradient-sage: linear-gradient(135deg, hsl(var(--sage)), hsl(var(--sage-dark)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary-warm) / 0.8), hsl(var(--sage) / 0.8));
+
+    /* Dark shadows */
+    --shadow-warm: 0 10px 30px -10px hsl(var(--primary-warm) / 0.4);
+    --shadow-gentle: 0 4px 20px -8px hsl(var(--primary-warm) / 0.3);
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
