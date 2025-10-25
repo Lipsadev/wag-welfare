@@ -1,6 +1,8 @@
-const express = require("express");
+// routes/pets.js
+import express from "express";
+import Pet from "../models/Pet.js";
+
 const router = express.Router();
-const Pet = require("../models/Pet");
 
 // @route   POST /api/pets
 // @desc    Create new pet
@@ -70,4 +72,5 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+// ✅ ESM export
+export default router;

@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+// models/Volunteer.js
+import mongoose from "mongoose";
 
 // Define the Volunteer schema
 const volunteerSchema = new mongoose.Schema(
@@ -12,5 +13,6 @@ const volunteerSchema = new mongoose.Schema(
   { versionKey: false } // removes __v field
 );
 
-// Export the model
-module.exports = mongoose.model("Volunteer", volunteerSchema);
+// ✅ ESM export
+const Volunteer = mongoose.model("Volunteer", volunteerSchema);
+export default Volunteer;

@@ -2,6 +2,8 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import { sendOTPEmail } from "../utils/emailService.js";
+import Volunteer from "../models/Volunteer.js";
+
 
 // ---------------- Helper: Generate Token ----------------
 const generateToken = (userId) => {

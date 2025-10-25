@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+// backend/models/User.js
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,8 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      minlength: 6,
-      // Optional initially; user sets it after OTP verification
+      minlength: 6, // Optional initially; user sets it after OTP verification
     },
     role: {
       type: String,
@@ -65,4 +65,6 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model("User", userSchema);
+// ✅ Prevent OverwriteModelError in ESM
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+export default User;

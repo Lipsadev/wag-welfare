@@ -1,10 +1,9 @@
 // ---------------- Server.js (ESM) ----------------
 import dotenv from "dotenv";
-dotenv.config(); // ✅ Load env first (must be before other imports)
+dotenv.config(); // ✅ Load env first
 
 console.log("🔍 SMTP_USER:", process.env.SMTP_USER);
 console.log("🔍 SMTP_PASS:", process.env.SMTP_PASS ? "Loaded ✅" : "Missing ❌");
-
 
 import express from "express";
 import cors from "cors";
@@ -12,7 +11,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 
-// ✅ Import routes AFTER dotenv so env variables are loaded
+// ---------------- Models (ESM) ----------------
+import User from "./models/User.js";
+import Pet from "./models/Pet.js";
+import Volunteer from "./models/Volunteer.js";
+
+// ---------------- Routes (ESM) ----------------
 import authRoutes from "./routes/authRoutes.js";
 import petRoutes from "./routes/pets.js";
 import rescueRoutes from "./routes/rescueRoutes.js";
@@ -35,16 +39,14 @@ connectDB()
   .then(() => console.log("✅ Database connected successfully"))
   .catch((err) => console.error("❌ Database connection failed:", err));
 
-
 // ---------------- Path Helpers (for serving uploads) ----------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
 // ---------------- Middleware ----------------
 app.use(
   cors({
-    origin: true, // allow all origins for dev
+    origin: true,
     credentials: true,
   })
 );
@@ -57,7 +59,6 @@ app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.url}`);
   next();
 });
-
 
 // ---------------- Root Routes ----------------
 app.get("/", (req, res) => {
@@ -72,10 +73,8 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-
 // ---------------- Static File Serving ----------------
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 
 // ---------------- API Routes ----------------
 app.use("/api/auth", authRoutes);
@@ -84,12 +83,10 @@ app.use("/api/rescues", rescueRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/chat", chatRoutes);
 
-
 // ---------------- 404 Fallback ----------------
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
-
 
 // ---------------- Global Error Handler ----------------
 app.use((err, req, res, next) => {
@@ -99,7 +96,6 @@ app.use((err, req, res, next) => {
     error: err.message,
   });
 });
-
 
 // ---------------- Start Server ----------------
 const PORT = process.env.PORT || 5000;
