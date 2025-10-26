@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 interface RescueModalProps {
   onClose: () => void;
-  onRescueAdded: () => void; // callback to refresh dashboard
+  onRescueAdded: () => void; // callback to refresh dashboard/list
 }
 
 const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => {
@@ -13,10 +13,6 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
   const [dogName, setDogName] = useState("");
   const [place, setPlace] = useState("");
   const [info, setInfo] = useState("");
-  const [type, setType] = useState("");
-  const [age, setAge] = useState("");
-  const [size, setSize] = useState("");
-  const [breed, setBreed] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
 
@@ -28,16 +24,17 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
       return;
     }
 
+    if (!dogName || !place || !info) {
+      setMessage("❌ Please fill all required fields.");
+      return;
+    }
+
     try {
       const formData = new FormData();
+      formData.append("reporterName", user?.name || "Anonymous");
       formData.append("dogName", dogName);
-      formData.append("reporterName", user?.name || dogName);
       formData.append("place", place);
       formData.append("info", info);
-      if (type) formData.append("type", type);
-      if (age) formData.append("age", age);
-      if (size) formData.append("size", size);
-      if (breed) formData.append("breed", breed);
       if (image) formData.append("image", image);
 
       const res = await axios.post("http://localhost:5000/api/rescues", formData, {
@@ -54,13 +51,8 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
         setDogName("");
         setPlace("");
         setInfo("");
-        setType("");
-        setAge("");
-        setSize("");
-        setBreed("");
         setImage(null);
 
-        // Notify parent to refresh dashboard or list
         onRescueAdded();
         onClose();
       }
@@ -93,7 +85,7 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
           />
           <input
             type="text"
-            placeholder="Place"
+            placeholder="Place / Location"
             value={place}
             onChange={(e) => setPlace(e.target.value)}
             required
@@ -101,37 +93,10 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
           />
           <input
             type="text"
-            placeholder="Info / Description"
+            placeholder="Information"
             value={info}
             onChange={(e) => setInfo(e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            placeholder="Type"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            placeholder="Age"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            placeholder="Size"
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            placeholder="Breed"
-            value={breed}
-            onChange={(e) => setBreed(e.target.value)}
+            required
             className="w-full p-2 border rounded"
           />
           <input

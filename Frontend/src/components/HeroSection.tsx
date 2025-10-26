@@ -15,13 +15,12 @@ const HeroSection = () => {
   const [showLoginCard, setShowLoginCard] = useState(false);
 
   const [rescueData, setRescueData] = useState({
-    name: "",
     dogName: "",
     place: "",
     info: "",
-    image: null,
+    image: null as File | null,
   });
-  const [rescuePreview, setRescuePreview] = useState(null);
+  const [rescuePreview, setRescuePreview] = useState<string | null>(null);
 
   const [volunteerData, setVolunteerData] = useState({
     name: "",
@@ -32,6 +31,8 @@ const HeroSection = () => {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!rescueData.image) {
@@ -64,8 +65,71 @@ const HeroSection = () => {
     setVolunteerOpen(true);
   };
 
-  const handleRescueSubmit = async (e) => { /* ...your existing rescue submit code... */ };
-  const handleVolunteerSubmit = async (e) => { /* ...your existing volunteer submit code... */ };
+  // ---------------- Rescue Submit ----------------
+  const handleRescueSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return setMessage("❌ You must be logged in");
+    if (!rescueData.image) return setMessage("❌ Image is required");
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("dogName", rescueData.dogName);
+      formData.append("place", rescueData.place);
+      formData.append("info", rescueData.info);
+      formData.append("image", rescueData.image);
+
+      const res = await fetch("http://localhost:5000/api/rescues", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to submit rescue");
+
+      setMessage("✅ Rescue reported successfully!");
+      setRescueData({ dogName: "", place: "", info: "", image: null });
+      setRescuePreview(null);
+      setRescueOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      setMessage("❌ " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------------- Volunteer Submit ----------------
+  const handleVolunteerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return setMessage("❌ You must be logged in");
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("http://localhost:5000/api/rescues/volunteers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(volunteerData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to submit volunteer request");
+
+      setMessage("✅ Volunteer request submitted!");
+      setVolunteerData({ name: "", place: "", phone: "", availability: "" });
+      setVolunteerOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      setMessage("❌ " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -114,7 +178,7 @@ const HeroSection = () => {
 
           {message && <p className="mt-4 text-lg font-medium">{message}</p>}
 
-          {/* Login Required Card with animation */}
+          {/* Login Required Card */}
           {showLoginCard && (
             <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded shadow-lg z-[3000] animate-login-card">
               Sign In / Sign Up required
@@ -130,7 +194,6 @@ const HeroSection = () => {
             <DialogTitle>Report a Rescue</DialogTitle>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleRescueSubmit}>
-            <Input type="text" placeholder="Your Name" value={rescueData.name} onChange={(e) => setRescueData({ ...rescueData, name: e.target.value })} required />
             <Input type="text" placeholder="Dog Name" value={rescueData.dogName} onChange={(e) => setRescueData({ ...rescueData, dogName: e.target.value })} required />
             <Input type="text" placeholder="Place / Location" value={rescueData.place} onChange={(e) => setRescueData({ ...rescueData, place: e.target.value })} required />
             <Input type="file" accept="image/*" onChange={(e) => setRescueData({ ...rescueData, image: e.target.files?.[0] || null })} required />

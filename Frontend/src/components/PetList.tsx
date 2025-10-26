@@ -8,14 +8,10 @@ type Pet = {
   _id: string;
   name: string;
   age: number | string;
-  type: string;
-  breed?: string;
+  type: "dog" | "cat" | "rabbit" | "guinea pig" | "hamster" | "fish";
   location?: string;
   image?: string;
   description?: string;
-  vaccinated?: boolean;
-  size?: string;
-  urgent?: boolean;
 };
 
 export default function PetList() {
@@ -40,7 +36,7 @@ export default function PetList() {
   const filteredPets =
     filter === "all"
       ? pets
-      : pets.filter((pet) => pet.type?.toLowerCase() === filter.toLowerCase());
+      : pets.filter((pet) => pet.type.toLowerCase() === filter.toLowerCase());
 
   if (loading) {
     return <p className="text-center py-6">Loading pets...</p>;
@@ -50,30 +46,21 @@ export default function PetList() {
     <div className="p-4">
       {/* 🔹 Filter Buttons */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {[
-          "all",
-          "dog",
-          "cat",
-          "rabbit",
-          "hamster",
-          "guinea pig",
-          "goldfish",
-          "betta fish",
-          "koi",
-          "aquarium",
-        ].map((animal) => (
-          <button
-            key={animal}
-            onClick={() => setFilter(animal)}
-            className={`px-4 py-2 rounded-full border transition ${
-              filter === animal
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {animal.charAt(0).toUpperCase() + animal.slice(1)}
-          </button>
-        ))}
+        {["all", "dog", "cat", "rabbit", "guinea pig", "hamster", "fish"].map(
+          (animal) => (
+            <button
+              key={animal}
+              onClick={() => setFilter(animal)}
+              className={`px-4 py-2 rounded-full border transition ${
+                filter === animal
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {animal.charAt(0).toUpperCase() + animal.slice(1)}
+            </button>
+          )
+        )}
       </div>
 
       {/* 🔹 Removed Pet Grid */}

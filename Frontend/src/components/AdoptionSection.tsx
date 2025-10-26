@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Filter } from "lucide-react";
-import { useAuth } from "../context/AuthContext"; // ✅ import auth context
+import { useAuth } from "../context/AuthContext";
 
 interface Dog {
   _id: string;
@@ -12,14 +12,13 @@ interface Dog {
   dogName: string;
   place: string;
   info: string;
-  image?: string;
-  age?: string;
-  size?: string;
-  breed?: string;
+  image: string; // mandatory now
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AdoptionSection = () => {
-  const { user, token } = useAuth(); // ✅ get current user
+  const { user, token } = useAuth();
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [filteredDogs, setFilteredDogs] = useState<Dog[]>([]);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
@@ -32,27 +31,24 @@ const AdoptionSection = () => {
   const [adoptionStatus, setAdoptionStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch dogs from backend
   useEffect(() => {
     const fetchDogs = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/rescues");
+        const res = await fetch(`${API_URL}/api/rescues`);
         const data = await res.json();
-        const dogsArray = Array.isArray(data) ? data : data.rescues || [];
+        const dogsArray: Dog[] = data.rescues.filter((dog: Dog) => dog.image); // only include dogs with images
         const sortedDogs = dogsArray.sort(
-          (a: Dog, b: Dog) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setDogs(sortedDogs);
         setFilteredDogs(sortedDogs);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch dogs:", err);
       }
     };
     fetchDogs();
   }, []);
 
-  // Filter dogs based on search
   const filterDogs = (value: string) => {
     const lower = value.toLowerCase();
     const filtered = dogs.filter(
@@ -64,14 +60,9 @@ const AdoptionSection = () => {
     setShowMore(false);
   };
 
-  // Split into latest + rest
-  const latestDogs = filteredDogs.slice(0, 3);
-  const restDogs = filteredDogs.slice(3);
-
-  // Submit adoption request
   const submitAdoption = async () => {
     if (!user || !token) {
-      setAdoptionStatus("Login/Sign Up is required"); // ✅ gatekeeping message
+      setAdoptionStatus("Login/Sign Up is required");
       return;
     }
 
@@ -80,27 +71,24 @@ const AdoptionSection = () => {
       return;
     }
 
+    if (!selectedDog) return;
+
     setIsSubmitting(true);
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/rescues/${selectedDog?._id}/adopt`,
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}` // ✅ send JWT
-          },
-          body: JSON.stringify({
-            name: adopterName,
-            email: adopterEmail,
-            reason: adoptionReason,
-          }),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/rescues/${selectedDog._id}/adopt`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: adopterName,
+          email: adopterEmail,
+          reason: adoptionReason,
+        }),
+      });
       const data = await res.json();
-      setAdoptionStatus(
-        data.success ? "✅ Request sent!" : "❌ Failed. Try again."
-      );
+      setAdoptionStatus(data.success ? "✅ Request sent!" : "❌ Failed. Try again.");
       if (data.success) {
         setAdopterName("");
         setAdopterEmail("");
@@ -113,6 +101,28 @@ const AdoptionSection = () => {
     setIsSubmitting(false);
   };
 
+  const renderDogCard = (dog: Dog) => (
+    <div
+      key={dog._id}
+      className="bg-white p-4 rounded-lg shadow-md cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border hover:border-[#FF9933] hover:bg-[#FFF3E0]"
+      onClick={() => setSelectedDog(dog)}
+    >
+      <img
+        src={`${API_URL}/uploads/${dog.image}`}
+        alt={dog.dogName}
+        className="w-full h-48 object-cover rounded-md mb-2 transition-transform duration-300 hover:scale-105"
+      />
+      <h3 className="font-bold text-lg mb-1 transition-colors hover:text-[#FF9933]">
+        {dog.dogName}
+      </h3>
+      <p className="text-gray-500 mb-1">{dog.place}</p>
+      <p className="text-gray-700">{dog.info}</p>
+    </div>
+  );
+
+  const latestDogs = filteredDogs.slice(0, 3);
+  const restDogs = filteredDogs.slice(3);
+
   return (
     <section className="py-16 bg-gray-100">
       <div className="container mx-auto px-4">
@@ -120,7 +130,6 @@ const AdoptionSection = () => {
           🐾 Dogs Available for Adoption
         </h2>
 
-        {/* Search */}
         <div className="mb-8 flex gap-2">
           <Input
             placeholder="Search by name or place"
@@ -135,77 +144,29 @@ const AdoptionSection = () => {
           </Button>
         </div>
 
-        {/* Latest Rescues */}
-        <h3 className="text-2xl font-semibold text-[#FF9933] mb-4">
-          Latest Rescues
-        </h3>
+        <h3 className="text-2xl font-semibold text-[#FF9933] mb-4">Latest Rescues</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-          {latestDogs.map((dog) => (
-            <div
-              key={dog._id}
-              className="bg-white p-4 rounded-lg shadow-md cursor-pointer transition-all duration-300 
-                         hover:shadow-xl hover:-translate-y-1 hover:border hover:border-[#FF9933] hover:bg-[#FFF3E0]"
-              onClick={() => setSelectedDog(dog)}
-            >
-              {dog.image && (
-                <img
-                  src={`http://localhost:5000/uploads/${dog.image}`}
-                  alt={dog.dogName}
-                  className="w-full h-48 object-cover rounded-md mb-2 transition-transform duration-300 hover:scale-105"
-                />
-              )}
-              <h3 className="font-bold text-lg mb-1 transition-colors hover:text-[#FF9933]">
-                {dog.dogName}
-              </h3>
-              <p className="text-gray-500 mb-1">{dog.place}</p>
-              <p className="text-gray-700">{dog.info}</p>
-            </div>
-          ))}
+          {latestDogs.map(renderDogCard)}
         </div>
 
-        {/* More Rescues */}
         {restDogs.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-xl font-semibold text-gray-700 mb-3">
-              More Rescues
-            </h3>
+          <>
+            <h3 className="text-xl font-semibold text-gray-700 mb-3">More Rescues</h3>
             <div
               className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 transition-all duration-300 ${
                 showMore ? "max-h-full" : "max-h-0 overflow-hidden"
               }`}
             >
-              {restDogs.map((dog) => (
-                <div
-                  key={dog._id}
-                  className="bg-white p-4 rounded-lg shadow-md cursor-pointer transition-all duration-300 
-                             hover:shadow-xl hover:-translate-y-1 hover:border hover:border-[#FF9933] hover:bg-[#FFF3E0]"
-                  onClick={() => setSelectedDog(dog)}
-                >
-                  {dog.image && (
-                    <img
-                      src={`http://localhost:5000/uploads/${dog.image}`}
-                      alt={dog.dogName}
-                      className="w-full h-48 object-cover rounded-md mb-2 transition-transform duration-300 hover:scale-105"
-                    />
-                  )}
-                  <h3 className="font-bold text-lg mb-1 transition-colors hover:text-[#FF9933]">
-                    {dog.dogName}
-                  </h3>
-                  <p className="text-gray-500 mb-1">{dog.place}</p>
-                  <p className="text-gray-700">{dog.info}</p>
-                </div>
-              ))}
+              {restDogs.map(renderDogCard)}
             </div>
-
             <div className="text-center mt-6">
               <Button onClick={() => setShowMore(!showMore)}>
                 {showMore ? "View Less" : "View More"}
               </Button>
             </div>
-          </div>
+          </>
         )}
 
-        {/* Small Card Popup */}
         {selectedDog && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4 overflow-auto">
             <div className="bg-white rounded-lg p-6 w-full max-w-xl relative shadow-lg">
@@ -216,24 +177,18 @@ const AdoptionSection = () => {
                 <X className="w-5 h-5" />
               </button>
 
-              {selectedDog.image && (
-                <img
-                  src={`http://localhost:5000/uploads/${selectedDog.image}`}
-                  alt={selectedDog.dogName}
-                  className="w-full h-64 md:h-48 object-contain rounded-md mb-4"
-                />
-              )}
+              <img
+                src={`${API_URL}/uploads/${selectedDog.image}`}
+                alt={selectedDog.dogName}
+                className="w-full h-64 md:h-48 object-contain rounded-md mb-4"
+              />
 
               <h3 className="text-xl font-bold mb-2">{selectedDog.dogName}</h3>
               <p><strong>Place:</strong> {selectedDog.place}</p>
               <p><strong>Info:</strong> {selectedDog.info}</p>
-              {selectedDog.breed && <p><strong>Breed:</strong> {selectedDog.breed}</p>}
-              {selectedDog.age && <p><strong>Age:</strong> {selectedDog.age}</p>}
-              {selectedDog.size && <p><strong>Size:</strong> {selectedDog.size}</p>}
 
               <div className="mt-4 border-t pt-4">
                 <h4 className="font-semibold mb-2">Request Adoption</h4>
-                
                 <Input
                   placeholder="Your Name"
                   value={adopterName}
@@ -260,7 +215,9 @@ const AdoptionSection = () => {
                 >
                   {isSubmitting ? "Submitting..." : "Submit Request"}
                 </Button>
-                {adoptionStatus && <p className="mt-2 text-sm text-red-600">{adoptionStatus}</p>}
+                {adoptionStatus && (
+                  <p className="mt-2 text-sm text-red-600">{adoptionStatus}</p>
+                )}
               </div>
             </div>
           </div>

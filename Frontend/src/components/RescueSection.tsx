@@ -9,14 +9,15 @@ interface Rescue {
   reporterName: string;
   place: string;
   info: string;
-  image?: string;
-  adoptionCount?: number;
+  image: string; // required
+  adoptionCount: number;
 }
 
 const RescueSection = () => {
   const [rescues, setRescues] = useState<Rescue[]>([]);
   const [rescueData, setRescueData] = useState({
-    name: "",
+    dogName: "",
+    reporterName: "",
     place: "",
     info: "",
     image: null as File | null,
@@ -25,7 +26,7 @@ const RescueSection = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const token = localStorage.getItem("token"); // ← JWT token from login
+  const token = localStorage.getItem("token");
 
   // Fetch all rescues
   const fetchRescues = async () => {
@@ -33,9 +34,9 @@ const RescueSection = () => {
       const res = await fetch("http://localhost:5000/api/rescues");
       if (!res.ok) throw new Error("Failed to fetch rescues");
       const data = await res.json();
-      setRescues(data.rescues); // ← backend sends { success, rescues }
+      setRescues(data.rescues || []);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching rescues:", err);
     }
   };
 
@@ -61,16 +62,21 @@ const RescueSection = () => {
       setMessage("❌ You must be logged in to report a rescue");
       return;
     }
+    if (!rescueData.image) {
+      setMessage("❌ Image is required!");
+      return;
+    }
+
     setLoading(true);
     setMessage("");
 
     try {
       const formData = new FormData();
-      formData.append("dogName", rescueData.name);
-      formData.append("reporterName", rescueData.name);
+      formData.append("dogName", rescueData.dogName);
+      formData.append("reporterName", rescueData.reporterName || rescueData.dogName);
       formData.append("place", rescueData.place);
       formData.append("info", rescueData.info);
-      if (rescueData.image) formData.append("image", rescueData.image);
+      formData.append("image", rescueData.image);
 
       const res = await fetch("http://localhost:5000/api/rescues", {
         method: "POST",
@@ -83,10 +89,10 @@ const RescueSection = () => {
       if (!res.ok) throw new Error("Failed to submit rescue");
       const data = await res.json();
 
-      // Update rescues immediately
+      // Immediately update list
       setRescues([data.rescue, ...rescues]);
       setMessage("✅ Rescue reported successfully!");
-      setRescueData({ name: "", place: "", info: "", image: null });
+      setRescueData({ dogName: "", reporterName: "", place: "", info: "", image: null });
       setRescuePreview(null);
     } catch (err: any) {
       console.error(err);
@@ -104,17 +110,12 @@ const RescueSection = () => {
         {/* Rescue Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {rescues.map((rescue) => (
-            <div
-              key={rescue._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden"
-            >
-              {rescue.image && (
-                <img
-                  src={`http://localhost:5000/uploads/${rescue.image}`}
-                  alt={rescue.dogName}
-                  className="w-full h-48 object-cover"
-                />
-              )}
+            <div key={rescue._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <img
+                src={`http://localhost:5000/uploads/${rescue.image}`}
+                alt={rescue.dogName}
+                className="w-full h-48 object-cover"
+              />
               <div className="p-4 text-left">
                 <h3 className="font-bold text-xl mb-2">{rescue.dogName}</h3>
                 <p className="text-gray-600 mb-1">Reported by: {rescue.reporterName}</p>
@@ -136,12 +137,18 @@ const RescueSection = () => {
         >
           <Input
             type="text"
+            placeholder="Dog Name"
+            className="w-full mb-4"
+            value={rescueData.dogName}
+            onChange={(e) => setRescueData({ ...rescueData, dogName: e.target.value })}
+            required
+          />
+          <Input
+            type="text"
             placeholder="Your Name"
             className="w-full mb-4"
-            value={rescueData.name}
-            onChange={(e) =>
-              setRescueData({ ...rescueData, name: e.target.value })
-            }
+            value={rescueData.reporterName}
+            onChange={(e) => setRescueData({ ...rescueData, reporterName: e.target.value })}
             required
           />
           <Input
@@ -149,26 +156,21 @@ const RescueSection = () => {
             placeholder="Place"
             className="w-full mb-4"
             value={rescueData.place}
-            onChange={(e) =>
-              setRescueData({ ...rescueData, place: e.target.value })
-            }
+            onChange={(e) => setRescueData({ ...rescueData, place: e.target.value })}
             required
           />
           <Textarea
             placeholder="Additional Info"
             className="w-full mb-4"
             value={rescueData.info}
-            onChange={(e) =>
-              setRescueData({ ...rescueData, info: e.target.value })
-            }
+            onChange={(e) => setRescueData({ ...rescueData, info: e.target.value })}
             required
           />
           <Input
             type="file"
             className="w-full mb-4"
-            onChange={(e) =>
-              setRescueData({ ...rescueData, image: e.target.files?.[0] || null })
-            }
+            onChange={(e) => setRescueData({ ...rescueData, image: e.target.files?.[0] || null })}
+            required
           />
           {rescuePreview && (
             <img
