@@ -1,25 +1,17 @@
 // models/Rescue.js
 import mongoose from "mongoose";
 
-// Rescue Schema
+// Minimal Rescue Schema
 const rescueSchema = new mongoose.Schema(
   {
-    reporterName: { type: String, required: true }, // Person reporting the rescue
-    dogName: { type: String, required: true },      // Dog's name (must exist)
+    reporterName: { type: String, required: true }, // User reporting the rescue
+    dogName: { type: String, required: true },      // Dog's name
     place: { type: String, required: true },        // Location of rescue
-    info: { type: String, required: true },         // Rescue details/info
-    image: { type: String, required: true },        // Image path/URL (must exist)
-
-    // Optional fields
-    age: { type: String },
-    size: { type: String },    // e.g., small, medium, large
-    type: { type: String },    // e.g., stray, abandoned, injured
-    breed: { type: String },
-
-    // Adoption stats
-    adoptionCount: { type: Number, default: 0 },
+    info: { type: String, required: true },         // Additional information
+    image: { type: String, required: true },        // Image filename/path
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Link to reporting user
   },
-  { timestamps: true } // Auto adds createdAt & updatedAt
+  { timestamps: true } // createdAt & updatedAt
 );
 
 // Avoid recompiling model in watch mode

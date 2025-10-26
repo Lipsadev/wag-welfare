@@ -1,15 +1,14 @@
-// routes/rescueRoutes.js
 import express from "express";
 import multer from "multer";
 import path from "path";
 import nodemailer from "nodemailer";
 import Rescue from "../models/Rescue.js";
 import Volunteer from "../models/Volunteer.js";
-import authMiddleware from "../middleware/authMiddleware.js"; // ✅ new middleware
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Multer setup
+// ---------------- Multer Setup ----------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
@@ -19,40 +18,34 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-/**
- * POST /api/rescues
- * Report a new rescue (authenticated)
- */
+// ---------------- POST /api/rescues ----------------
 router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
   try {
-    const { reporterName, dogName, place, info, age, size, type, breed } = req.body;
+    const { dogName, place, info } = req.body;
     const image = req.file ? req.file.filename : null;
 
+    if (!dogName || !place || !info || !image) {
+      return res.status(400).json({ success: false, message: "All fields including image are required." });
+    }
+
     const newRescue = new Rescue({
-      reporterName: reporterName || req.user.name,
+      reporterName: req.user.name,
       dogName,
       place,
       info,
       image,
-      age,
-      size,
-      type,
-      breed,
-      userId: req.user._id, // ✅ link to logged-in user
+      userId: req.user._id,
     });
 
     await newRescue.save();
-    res.json({ success: true, message: "Rescue reported successfully", rescue: newRescue });
+    res.status(201).json({ success: true, message: "Rescue reported successfully", rescue: newRescue });
   } catch (err) {
     console.error("Error reporting rescue:", err);
     res.status(500).json({ success: false, message: "Failed to report rescue" });
   }
 });
 
-/**
- * GET /api/rescues
- * Fetch all rescues (public)
- */
+// ---------------- GET /api/rescues ----------------
 router.get("/", async (req, res) => {
   try {
     const rescues = await Rescue.find().sort({ createdAt: -1 });
@@ -63,24 +56,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-/**
- * GET /api/rescues/user/:id
- * Fetch rescues submitted by a specific user (authenticated optional)
- */
-router.get("/user/:id", async (req, res) => {
-  try {
-    const rescues = await Rescue.find({ userId: req.params.id }).sort({ createdAt: -1 });
-    res.json(rescues);
-  } catch (err) {
-    console.error("Error fetching user rescues:", err);
-    res.status(500).json({ success: false, message: "Failed to fetch user's rescues" });
-  }
-});
-
-/**
- * DELETE /api/rescues
- * Delete all rescues (admin/debug)
- */
+// ---------------- DELETE /api/rescues ----------------
 router.delete("/", async (req, res) => {
   try {
     await Rescue.deleteMany({});
@@ -91,26 +67,20 @@ router.delete("/", async (req, res) => {
   }
 });
 
-/**
- * POST /api/rescues/volunteers
- * Add a volunteer
- */
+// ---------------- POST /api/rescues/volunteers ----------------
 router.post("/volunteers", async (req, res) => {
   try {
     const { name, place, phone, availability } = req.body;
     const newVolunteer = new Volunteer({ name, place, phone, availability });
     await newVolunteer.save();
-    res.json({ success: true, message: "Volunteer added successfully", volunteer: newVolunteer });
+    res.status(201).json({ success: true, message: "Volunteer added successfully", volunteer: newVolunteer });
   } catch (err) {
     console.error("Error adding volunteer:", err);
     res.status(500).json({ success: false, message: "Failed to add volunteer" });
   }
 });
 
-/**
- * GET /api/rescues/volunteers
- * Get all volunteers
- */
+// ---------------- GET /api/rescues/volunteers ----------------
 router.get("/volunteers", async (req, res) => {
   try {
     const volunteers = await Volunteer.find().sort({ createdAt: -1 });
@@ -121,10 +91,7 @@ router.get("/volunteers", async (req, res) => {
   }
 });
 
-/**
- * POST /api/rescues/:id/adopt
- * Send adoption request via email
- */
+// ---------------- POST /api/rescues/:id/adopt ----------------
 router.post("/:id/adopt", async (req, res) => {
   try {
     const { id } = req.params;

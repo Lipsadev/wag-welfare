@@ -8,54 +8,18 @@ const petSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    age: {
-      type: Number,
-      required: true,
-    },
-    breed: {
-      type: String,
-      required: true,
-    },
     description: {
       type: String,
       trim: true,
     },
     type: {
       type: String,
-      enum: [
-        "dog",
-        "cat",
-        "rabbit",
-        "guinea pig",
-        "hamster",
-        "goldfish",
-        "betta fish",
-        "koi",
-        "aquarium rescue",
-      ],
+      enum: ["dog"], // Only dogs
       required: true,
     },
     image: {
       type: String,
       required: true,
-    },
-    status: {
-      type: String,
-      enum: ["available", "adopted"],
-      default: "available",
-    },
-    location: {
-      type: String,
-      default: "Unknown",
-    },
-    size: {
-      type: String,
-      enum: ["Small", "Medium", "Large"],
-      default: "Medium",
-    },
-    urgent: {
-      type: Boolean,
-      default: false,
     },
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -66,5 +30,4 @@ const petSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Pet = mongoose.model("Pet", petSchema);
-export default Pet;
+export default mongoose.model("Pet", petSchema);
