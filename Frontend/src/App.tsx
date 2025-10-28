@@ -101,7 +101,7 @@ const Dashboard = () => {
   const { data: rescues, isLoading, error } = useQuery<Rescue[]>({
     queryKey: ["userRescues", user?._id],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/api/rescues/user/${user?._id}`);
+      const res = await axios.get(`https://wag-welfare-a0at.onrender.com/api/rescue/user/${user._id}`);
       return res.data.rescues || [];
     },
     enabled: !!user,
