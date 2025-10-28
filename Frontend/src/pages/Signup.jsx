@@ -12,7 +12,7 @@ const Signup = ({ onClose }) => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
-  const backendURL = "http://localhost:5000/api/auth";
+  const backendURL = "https://wag-welfare-a0at.onrender.com/api/auth";
 
   const handleSignup = async (e) => {
     e.preventDefault();
