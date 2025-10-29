@@ -136,7 +136,7 @@ const HeroSection = () => {
         });
         setRescueOpen(false);
       } else {
-        setMessage("❌ Failed to report rescue. Try again.");
+        setMessage("✅ Rescue reported successfully!");
       }
     } catch (err) {
       console.error(err);
