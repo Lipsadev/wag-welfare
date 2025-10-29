@@ -1,7 +1,7 @@
 // src/lib/api.js
 import axios from "axios";
 
-const backendURL = "http://localhost:5000/api/auth";
+const backendURL = "https://wag-welfare-a0at.onrender.com/api/auth";
 
 // ---------------- Helper: Save token & user ----------------
 const saveAuthData = (token, user) => {
