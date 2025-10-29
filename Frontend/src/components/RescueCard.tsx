@@ -12,11 +12,12 @@ interface Rescue {
 const RescueCards = () => {
   const [rescues, setRescues] = useState<Rescue[]>([]);
   const [showAll, setShowAll] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRescues = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/rescues");
+        const res = await fetch("https://wag-welfare-a0at.onrender.com/api/rescues");
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
 
@@ -29,12 +30,22 @@ const RescueCards = () => {
         setRescues(sorted);
       } catch (err) {
         console.error("Error fetching rescues:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchRescues();
   }, []);
 
   const displayed = showAll ? rescues : rescues.slice(0, 8);
+
+  if (loading) {
+    return <p className="text-center py-6 text-gray-500">Loading rescues...</p>;
+  }
+
+  if (rescues.length === 0) {
+    return <p className="text-center py-6 text-gray-500">No rescues reported yet.</p>;
+  }
 
   return (
     <div className="mt-10">
@@ -46,17 +57,21 @@ const RescueCards = () => {
             key={rescue._id}
             className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl hover:scale-105 transform transition"
           >
-            {rescue.image && (
+            {rescue.image ? (
               <img
-                src={`http://localhost:5000/uploads/${rescue.image}`}
+                src={`https://wag-welfare-a0at.onrender.com/uploads/${rescue.image}`}
                 alt={rescue.dogName}
                 className="w-full h-48 object-cover"
               />
+            ) : (
+              <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
+                No Image
+              </div>
             )}
             <div className="p-4">
               <h2 className="text-xl font-bold mb-1">{rescue.dogName}</h2>
               <p className="text-sm text-gray-500 mb-2">{rescue.place}</p>
-              <p className="text-gray-700">{rescue.info}</p>
+              <p className="text-gray-700 line-clamp-3">{rescue.info}</p>
             </div>
           </div>
         ))}
