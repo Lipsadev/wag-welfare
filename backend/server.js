@@ -2,9 +2,6 @@
 import dotenv from "dotenv";
 dotenv.config(); // ✅ Load env first
 
-console.log("🔍 SMTP_USER:", process.env.SMTP_USER);
-console.log("🔍 SMTP_PASS:", process.env.SMTP_PASS ? "Loaded ✅" : "Missing ❌");
-
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -44,9 +41,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ---------------- Middleware ----------------
+
+// ✅ Configure CORS once — this covers both local + Render frontend
 app.use(
   cors({
-    origin: true,
+    origin: [
+      "https://wag-welfare-frontend.onrender.com", // your deployed frontend
+      "http://localhost:5173",                     // for local dev
+    ],
     credentials: true,
   })
 );
@@ -100,5 +102,6 @@ app.use((err, req, res, next) => {
 // ---------------- Start Server ----------------
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  const API_BASE_URL = "https://wag-welfare-a0at.onrender.com";
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("🌐 API Base URL: https://wag-welfare-a0at.onrender.com");
 });
