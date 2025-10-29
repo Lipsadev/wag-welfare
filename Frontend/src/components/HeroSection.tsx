@@ -15,10 +15,10 @@ const HeroSection = () => {
   const [showLoginCard, setShowLoginCard] = useState(false);
 
   const [rescueData, setRescueData] = useState({
-    name: "",
+    reporterName: "",
     dogName: "",
     place: "",
-    info: "",
+    description: "",
     image: null as File | null,
   });
   const [rescuePreview, setRescuePreview] = useState<string | null>(null);
@@ -70,7 +70,7 @@ const HeroSection = () => {
     e.preventDefault();
     if (!token) return handleLoginRequired();
 
-    if (!rescueData.name || !rescueData.dogName || !rescueData.place || !rescueData.info || !rescueData.image) {
+    if (!rescueData.reporterName || !rescueData.dogName || !rescueData.place || !rescueData.description || !rescueData.image) {
       setMessage("All fields including image are required.");
       return;
     }
@@ -79,10 +79,10 @@ const HeroSection = () => {
       setLoading(true);
       setMessage("Uploading image...");
 
-      // 🔹 Step 1: Upload image to Cloudinary (fixed preset name)
+      // Step 1: Upload image to Cloudinary
       const imgForm = new FormData();
       imgForm.append("file", rescueData.image);
-      imgForm.append("upload_preset", "pawrescue_upload"); // ✅ Correct preset
+      imgForm.append("upload_preset", "pawrescue_upload");
 
       const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/dlgow7bhp/image/upload`, {
         method: "POST",
@@ -99,7 +99,7 @@ const HeroSection = () => {
 
       const imageUrl = cloudData.secure_url;
 
-      // 🔹 Step 2: Send rescue data to backend
+      // Step 2: Send rescue data to backend
       const res = await fetch("https://wag-welfare-a0at.onrender.com/api/rescues", {
         method: "POST",
         headers: {
@@ -107,10 +107,10 @@ const HeroSection = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          reporterName: rescueData.name,
+          reporterName: rescueData.reporterName,
           dogName: rescueData.dogName,
           place: rescueData.place,
-          info: rescueData.info,
+          description: rescueData.description,
           image: imageUrl,
         }),
       });
@@ -118,9 +118,10 @@ const HeroSection = () => {
       const data = await res.json();
       if (data.success) {
         setMessage("✅ Rescue reported successfully!");
-        setRescueData({ name: "", dogName: "", place: "", info: "", image: null });
+        setRescueData({ reporterName: "", dogName: "", place: "", description: "", image: null });
         setRescueOpen(false);
       } else {
+        console.error("Rescue POST failed:", data);
         setMessage("❌ Failed to report rescue. Try again.");
       }
     } catch (err) {
@@ -173,7 +174,7 @@ const HeroSection = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setMessage("✅ Volunteer request submitted! Check your email soon for confirmation.");
+        setMessage("✅ Volunteer request submitted!");
         setVolunteerData({ name: "", place: "", phone: "", availability: "" });
         setVolunteerErrors({ name: "", place: "", phone: "", availability: "" });
         setVolunteerOpen(false);
@@ -240,12 +241,12 @@ const HeroSection = () => {
             <DialogTitle>Report a Rescue</DialogTitle>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleRescueSubmit}>
-            <Input type="text" placeholder="Your Name" value={rescueData.name} onChange={(e) => setRescueData({ ...rescueData, name: e.target.value })} required />
+            <Input type="text" placeholder="Your Name" value={rescueData.reporterName} onChange={(e) => setRescueData({ ...rescueData, reporterName: e.target.value })} required />
             <Input type="text" placeholder="Dog Name" value={rescueData.dogName} onChange={(e) => setRescueData({ ...rescueData, dogName: e.target.value })} required />
             <Input type="text" placeholder="Place / Location" value={rescueData.place} onChange={(e) => setRescueData({ ...rescueData, place: e.target.value })} required />
             <Input type="file" accept="image/*" onChange={(e) => setRescueData({ ...rescueData, image: e.target.files?.[0] || null })} required />
             {rescuePreview && <img src={rescuePreview} alt="Preview" className="w-full h-48 object-cover rounded-md mt-2" />}
-            <Textarea placeholder="Additional Information" value={rescueData.info} onChange={(e) => setRescueData({ ...rescueData, info: e.target.value })} required />
+            <Textarea placeholder="Additional Information" value={rescueData.description} onChange={(e) => setRescueData({ ...rescueData, description: e.target.value })} required />
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Submitting..." : "Submit Rescue"}
             </Button>
