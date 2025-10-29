@@ -7,7 +7,7 @@ const ForgotPassword = () => {
   const [step, setStep] = useState(1); // Step 1: request OTP, Step 2: reset password
   const [message, setMessage] = useState("");
 
-  const backendURL = "http://localhost:5000/api/auth";
+  const backendURL = "https://wag-welfare-a0at.onrender.com/api/auth";
 
   // Step 1: Request OTP
   const requestOtp = async (e) => {
