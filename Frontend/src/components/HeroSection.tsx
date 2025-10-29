@@ -8,13 +8,14 @@ import heroImage from "@/assets/hero-dogs.jpg";
 import { useAuth } from "../context/AuthContext";
 
 const HeroSection = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const [rescueOpen, setRescueOpen] = useState(false);
   const [volunteerOpen, setVolunteerOpen] = useState(false);
   const [showLoginCard, setShowLoginCard] = useState(false);
 
   const [rescueData, setRescueData] = useState({
+    name: "",
     dogName: "",
     place: "",
     info: "",
@@ -32,7 +33,12 @@ const HeroSection = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const token = localStorage.getItem("token");
+  const [volunteerErrors, setVolunteerErrors] = useState({
+    name: "",
+    place: "",
+    phone: "",
+    availability: "",
+  });
 
   useEffect(() => {
     if (!rescueData.image) {
@@ -50,82 +56,132 @@ const HeroSection = () => {
   };
 
   const handleRescueClick = () => {
-    if (!user) {
-      handleLoginRequired();
-      return;
-    }
+    if (!user) return handleLoginRequired();
     setRescueOpen(true);
   };
 
   const handleVolunteerClick = () => {
-    if (!user) {
-      handleLoginRequired();
-      return;
-    }
+    if (!user) return handleLoginRequired();
     setVolunteerOpen(true);
   };
 
-  // ---------------- Rescue Submit ----------------
+  // 🐶 CLOUDINARY UPLOAD + Rescue Submit
   const handleRescueSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return setMessage("❌ You must be logged in");
-    if (!rescueData.image) return setMessage("❌ Image is required");
+    if (!token) return handleLoginRequired();
 
-    setLoading(true);
-    setMessage("");
+    if (!rescueData.name || !rescueData.dogName || !rescueData.place || !rescueData.info || !rescueData.image) {
+      setMessage("All fields including image are required.");
+      return;
+    }
 
     try {
-      const formData = new FormData();
-      formData.append("dogName", rescueData.dogName);
-      formData.append("place", rescueData.place);
-      formData.append("info", rescueData.info);
-      formData.append("image", rescueData.image);
+      setLoading(true);
+      setMessage("Uploading image...");
 
-      const res = await fetch("http://localhost:5000/api/rescues", {
+      // 🔹 Step 1: Upload image to Cloudinary
+      const imgForm = new FormData();
+      imgForm.append("file", rescueData.image);
+      imgForm.append("upload_preset", "pawrescue_uploads"); // 👈 replace with your actual preset name
+
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/dlgow7bhp/image/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
+        body: imgForm,
+      });
+      const cloudData = await cloudRes.json();
+
+      if (!cloudData.secure_url) {
+        setMessage("❌ Failed to upload image.");
+        setLoading(false);
+        return;
+      }
+
+      const imageUrl = cloudData.secure_url;
+
+      // 🔹 Step 2: Send rescue data with Cloudinary URL to backend
+      const res = await fetch("https://wag-welfare-a0at.onrender.com/api/rescues", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reporterName: rescueData.name,
+          dogName: rescueData.dogName,
+          place: rescueData.place,
+          info: rescueData.info,
+          image: imageUrl,
+        }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to submit rescue");
-
-      setMessage("✅ Rescue reported successfully!");
-      setRescueData({ dogName: "", place: "", info: "", image: null });
-      setRescuePreview(null);
-      setRescueOpen(false);
-    } catch (err: any) {
+      if (data.success) {
+        setMessage("✅ Rescue reported successfully!");
+        setRescueData({ name: "", dogName: "", place: "", info: "", image: null });
+        setRescueOpen(false);
+      } else {
+        setMessage("❌ Failed to report rescue. Try again.");
+      }
+    } catch (err) {
       console.error(err);
-      setMessage("❌ " + err.message);
+      setMessage("❌ Error reporting rescue.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- Volunteer Submit ----------------
+  // 👥 Volunteer Submit
   const handleVolunteerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return setMessage("❌ You must be logged in");
 
-    setLoading(true);
-    setMessage("");
+    const errors = { name: "", place: "", phone: "", availability: "" };
+    let hasError = false;
+
+    if (!volunteerData.name.trim()) {
+      errors.name = "Name is required.";
+      hasError = true;
+    }
+    if (!volunteerData.place.trim()) {
+      errors.place = "Place / Location is required.";
+      hasError = true;
+    }
+    if (!volunteerData.phone.trim()) {
+      errors.phone = "Phone Number is required.";
+      hasError = true;
+    } else if (!/^\d{10}$/.test(volunteerData.phone.trim())) {
+      errors.phone = "Enter a valid 10-digit phone number.";
+      hasError = true;
+    }
+    if (!volunteerData.availability.trim()) {
+      errors.availability = "Availability is required.";
+      hasError = true;
+    }
+
+    setVolunteerErrors(errors);
+    if (hasError) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/rescues/volunteers", {
+      setLoading(true);
+      const res = await fetch("https://wag-welfare-a0at.onrender.com/api/volunteers", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}` 
+        },
         body: JSON.stringify(volunteerData),
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to submit volunteer request");
-
-      setMessage("✅ Volunteer request submitted!");
-      setVolunteerData({ name: "", place: "", phone: "", availability: "" });
-      setVolunteerOpen(false);
-    } catch (err: any) {
+      if (data.success) {
+        setMessage("✅ Volunteer request submitted! Check your email soon for confirmation.");
+        setVolunteerData({ name: "", place: "", phone: "", availability: "" });
+        setVolunteerErrors({ name: "", place: "", phone: "", availability: "" });
+        setVolunteerOpen(false);
+      } else {
+        setMessage("❌ Failed to submit volunteer request.");
+      }
+    } catch (err) {
       console.error(err);
-      setMessage("❌ " + err.message);
+      setMessage("❌ Error submitting volunteer request.");
     } finally {
       setLoading(false);
     }
@@ -149,36 +205,25 @@ const HeroSection = () => {
             </span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-2xl mx-auto leading-relaxed">
-            Connect rescuers, volunteers, and loving families to save stray dogs
-            and give them the life they deserve.
+            Connect rescuers, volunteers, and loving families to save stray dogs and give them the life they deserve.
           </p>
 
-          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button
-              variant="hero"
-              size="lg"
-              className="text-lg px-8 py-4 shadow-warm"
-              onClick={handleRescueClick}
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              Report a Rescue
+            <Button variant="hero" size="lg" className="text-lg px-8 py-4 shadow-warm" onClick={handleRescueClick}>
+              <Heart className="w-5 h-5 mr-2" /> Report a Rescue
             </Button>
-
             <Button
               variant="secondary"
               size="lg"
               className="text-lg px-8 py-4 bg-white/20 hover:bg-white/30 text-white border-white/30"
               onClick={handleVolunteerClick}
             >
-              <Users className="w-5 h-5 mr-2" />
-              Join as Volunteer
+              <Users className="w-5 h-5 mr-2" /> Join as Volunteer
             </Button>
           </div>
 
           {message && <p className="mt-4 text-lg font-medium">{message}</p>}
 
-          {/* Login Required Card */}
           {showLoginCard && (
             <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded shadow-lg z-[3000] animate-login-card">
               Sign In / Sign Up required
@@ -187,13 +232,14 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Rescue Form Modal */}
+      {/* Rescue Form */}
       <Dialog open={rescueOpen} onOpenChange={setRescueOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Report a Rescue</DialogTitle>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleRescueSubmit}>
+            <Input type="text" placeholder="Your Name" value={rescueData.name} onChange={(e) => setRescueData({ ...rescueData, name: e.target.value })} required />
             <Input type="text" placeholder="Dog Name" value={rescueData.dogName} onChange={(e) => setRescueData({ ...rescueData, dogName: e.target.value })} required />
             <Input type="text" placeholder="Place / Location" value={rescueData.place} onChange={(e) => setRescueData({ ...rescueData, place: e.target.value })} required />
             <Input type="file" accept="image/*" onChange={(e) => setRescueData({ ...rescueData, image: e.target.files?.[0] || null })} required />
@@ -206,7 +252,7 @@ const HeroSection = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Volunteer Form Modal */}
+      {/* Volunteer Form */}
       <Dialog open={volunteerOpen} onOpenChange={setVolunteerOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -224,7 +270,6 @@ const HeroSection = () => {
         </DialogContent>
       </Dialog>
 
-      {/* CSS Animation */}
       <style>
         {`
           @keyframes loginCardZoom {
