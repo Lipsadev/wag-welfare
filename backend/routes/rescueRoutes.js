@@ -1,51 +1,72 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
 import nodemailer from "nodemailer";
+import { v2 as cloudinary } from "cloudinary";
 import Rescue from "../models/Rescue.js";
 import Volunteer from "../models/Volunteer.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ---------------- Multer Setup ----------------
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
+/* ------------------ CLOUDINARY CONFIGURATION ------------------ */
+cloudinary.config({
+  cloud_name: "dlgow7bhp",
+  api_key: "364112411249494",
+  api_secret: "8Vko-V7IxfWBYAzbCxTCtOF25jE",
 });
+
+/* -------------------------- MULTER SETUP -------------------------- */
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ---------------- POST /api/rescues ----------------
+/* ---------------------- POST: REPORT A RESCUE ---------------------- */
 router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
   try {
-    const { dogName, place, info } = req.body;
-    const image = req.file ? req.file.filename : null;
+    const { reporterName, dogName, place, info } = req.body;
 
-    if (!dogName || !place || !info || !image) {
-      return res.status(400).json({ success: false, message: "All fields including image are required." });
+    if (!reporterName || !dogName || !place || !info || !req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields including image are required.",
+      });
     }
 
+    // ✅ Upload image to Cloudinary properly
+    const uploadedImage = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "pawrescue/rescues" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    // ✅ Save rescue details
     const newRescue = new Rescue({
-      reporterName: req.user.name,
+      reporterName: reporterName || req.user.name,
       dogName,
       place,
       info,
-      image,
+      image: uploadedImage.secure_url,
       userId: req.user._id,
     });
 
     await newRescue.save();
-    res.status(201).json({ success: true, message: "Rescue reported successfully", rescue: newRescue });
+
+    res.json({
+      success: true,
+      message: "Rescue reported successfully",
+      rescue: newRescue,
+    });
   } catch (err) {
-    console.error("Error reporting rescue:", err);
+    console.error("❌ Error reporting rescue:", err);
     res.status(500).json({ success: false, message: "Failed to report rescue" });
   }
 });
 
-// ---------------- GET /api/rescues ----------------
+/* ------------------------- GET: ALL RESCUES ------------------------- */
 router.get("/", async (req, res) => {
   try {
     const rescues = await Rescue.find().sort({ createdAt: -1 });
@@ -56,7 +77,18 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ---------------- DELETE /api/rescues ----------------
+/* ------------------ GET: RESCUES BY USER ----------------- */
+router.get("/user/:id", async (req, res) => {
+  try {
+    const rescues = await Rescue.find({ userId: req.params.id }).sort({ createdAt: -1 });
+    res.json({ success: true, rescues });
+  } catch (err) {
+    console.error("Error fetching user rescues:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch user's rescues" });
+  }
+});
+
+/* -------------------- DELETE: ALL RESCUES (ADMIN) ------------------- */
 router.delete("/", async (req, res) => {
   try {
     await Rescue.deleteMany({});
@@ -67,20 +99,23 @@ router.delete("/", async (req, res) => {
   }
 });
 
-// ---------------- POST /api/rescues/volunteers ----------------
+/* -------------------- POST: ADD VOLUNTEER -------------------- */
 router.post("/volunteers", async (req, res) => {
   try {
     const { name, place, phone, availability } = req.body;
+    if (!name || !place || !phone || !availability) {
+      return res.status(400).json({ success: false, message: "All volunteer fields are required." });
+    }
     const newVolunteer = new Volunteer({ name, place, phone, availability });
     await newVolunteer.save();
-    res.status(201).json({ success: true, message: "Volunteer added successfully", volunteer: newVolunteer });
+    res.json({ success: true, message: "Volunteer added successfully", volunteer: newVolunteer });
   } catch (err) {
     console.error("Error adding volunteer:", err);
     res.status(500).json({ success: false, message: "Failed to add volunteer" });
   }
 });
 
-// ---------------- GET /api/rescues/volunteers ----------------
+/* ---------------------- GET: ALL VOLUNTEERS ---------------------- */
 router.get("/volunteers", async (req, res) => {
   try {
     const volunteers = await Volunteer.find().sort({ createdAt: -1 });
@@ -91,7 +126,7 @@ router.get("/volunteers", async (req, res) => {
   }
 });
 
-// ---------------- POST /api/rescues/:id/adopt ----------------
+/* --------------------- POST: ADOPTION REQUEST ---------------------- */
 router.post("/:id/adopt", async (req, res) => {
   try {
     const { id } = req.params;
