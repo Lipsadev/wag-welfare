@@ -9,7 +9,7 @@ import axios from "axios";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthModal from "./components/AuthModal";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/AuthContext"; // Auth context
 
 const queryClient = new QueryClient();
 
@@ -19,6 +19,7 @@ const UserMenu = () => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Close when clicked outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -33,18 +34,21 @@ const UserMenu = () => {
 
   return (
     <div className="relative" ref={menuRef}>
+      {/* Avatar Button */}
       <button
         onClick={() => setOpen(!open)}
         className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-warm to-primary-soft text-white font-bold flex items-center justify-center shadow-md hover:scale-105 transition"
       >
-        {user.name?.charAt(0).toUpperCase() || "U"}
+        {user.name?.charAt(0)?.toUpperCase() || "U"}
       </button>
 
+      {/* Dropdown Menu */}
       {open && (
         <div className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-2xl p-4 flex flex-col gap-3 z-50 border border-gray-100 animate-fadeIn">
+          {/* User Info */}
           <div className="flex items-center gap-3 border-b pb-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-warm to-primary-soft text-white flex items-center justify-center font-bold">
-              {user.name?.charAt(0).toUpperCase() || "U"}
+              {user.name?.charAt(0)?.toUpperCase() || "U"}
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">{user.name}</p>
@@ -52,6 +56,7 @@ const UserMenu = () => {
             </div>
           </div>
 
+          {/* Menu Options */}
           <button
             className="px-3 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-md text-left"
             onClick={() => {
@@ -85,24 +90,15 @@ const UserMenu = () => {
   );
 };
 
-// ------------------ Dashboard ------------------
-interface Rescue {
-  _id: string;
-  dogName: string;
-  place: string;
-  info: string;
-  status: "Pending" | "Resolved" | string;
-  createdAt: string;
-}
-
+// ------------------ Dashboard Component ------------------
 const Dashboard = () => {
   const { user } = useAuth();
 
-  const { data: rescues, isLoading, error } = useQuery<Rescue[]>({
+  const { data: rescues, isLoading, error } = useQuery({
     queryKey: ["userRescues", user?._id],
     queryFn: async () => {
       const res = await axios.get(`https://wag-welfare-a0at.onrender.com/api/rescue/user/${user._id}`);
-      return res.data.rescues || [];
+      return res.data;
     },
     enabled: !!user,
   });
@@ -110,7 +106,7 @@ const Dashboard = () => {
   if (isLoading) return <div className="p-8 text-gray-600 text-center">Loading your rescues...</div>;
   if (error) return <div className="p-8 text-red-600 text-center">Failed to load rescue data.</div>;
 
-  const totalRescues = rescues?.length || 0;
+  const totalRescues = rescues.length; 
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
@@ -128,13 +124,13 @@ const Dashboard = () => {
 
         {totalRescues > 0 ? (
           <ul className="space-y-4">
-            {rescues.map((r) => (
+            {rescues.map((r: any) => (
               <li
                 key={r._id}
                 className="p-4 border rounded-xl flex justify-between items-center hover:bg-gray-50 transition"
               >
                 <div>
-                  <p className="font-medium text-gray-800">🐾 {r.dogName} — {r.place}</p>
+                  <p className="font-medium text-gray-800">🐾 {r.animalType} — {r.location}</p>
                   <p className="text-sm text-gray-500">Submitted: {new Date(r.createdAt).toLocaleString()}</p>
                 </div>
                 <span
@@ -172,6 +168,7 @@ const App = () => {
         <Sonner />
 
         <BrowserRouter>
+          {/* Fixed Top Buttons */}
           <div className="fixed top-4 right-4 z-[1000] flex gap-2 items-center">
             {!user ? (
               <>
@@ -193,6 +190,7 @@ const App = () => {
             )}
           </div>
 
+          {/* App Routes */}
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -203,6 +201,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
 
+          {/* Auth Modals */}
           {showLogin && <AuthModal type="login" onClose={() => setShowLogin(false)} />}
           {showSignup && <AuthModal type="signup" onClose={() => setShowSignup(false)} />}
         </BrowserRouter>
