@@ -36,10 +36,10 @@ const Dashboard: React.FC = () => {
         }
 
         const [rescueRes, adoptionRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/rescues", {
+          axios.get("https://wag-welfare-a0at.onrender.com/api/rescues", {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:5000/api/adoptions", {
+          axios.get("https://wag-welfare-a0at.onrender.com/api/adoptions", {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
                     <td className="py-2 px-4 border">{r.info}</td>
                     <td className="py-2 px-4 border">
                       <img
-                        src={`http://localhost:5000/${r.image}`}
+                        src={`https://wag-welfare-a0at.onrender.com/${r.image}`}
                         alt={r.dogName}
                         className="h-16 w-16 object-cover rounded-lg mx-auto"
                       />
