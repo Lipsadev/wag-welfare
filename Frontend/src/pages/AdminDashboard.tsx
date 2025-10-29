@@ -29,11 +29,11 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         if (tab === "rescues") {
-          const res = await fetch("http://localhost:5000/api/rescues");
+          const res = await fetch("https://wag-welfare-a0at.onrender.com/api/rescues");
           const data = await res.json();
           if (data.success) setRescues(data.rescues);
         } else {
-          const res = await fetch("http://localhost:5000/api/volunteers");
+          const res = await fetch("https://wag-welfare-a0at.onrender.com/api/volunteers");
           const data = await res.json();
           if (data.success) setVolunteers(data.volunteers);
         }
@@ -83,7 +83,7 @@ const AdminDashboard = () => {
               <div key={rescue._id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 {rescue.image && (
                   <img
-                    src={`http://localhost:5000/uploads/${rescue.image}`}
+                    src={`https://wag-welfare-a0at.onrender.com/uploads/${rescue.image}`}
                     alt={rescue.name}
                     className="w-full h-48 object-cover"
                   />
