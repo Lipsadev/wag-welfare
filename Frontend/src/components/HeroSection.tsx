@@ -79,10 +79,10 @@ const HeroSection = () => {
       setLoading(true);
       setMessage("Uploading image...");
 
-      // 🔹 Step 1: Upload image to Cloudinary
+      // 🔹 Step 1: Upload image to Cloudinary (fixed preset name)
       const imgForm = new FormData();
       imgForm.append("file", rescueData.image);
-      imgForm.append("upload_preset", "pawrescue_uploads"); // 👈 replace with your actual preset name
+      imgForm.append("upload_preset", "pawrescue_upload"); // ✅ Correct preset
 
       const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/dlgow7bhp/image/upload`, {
         method: "POST",
@@ -91,19 +91,20 @@ const HeroSection = () => {
       const cloudData = await cloudRes.json();
 
       if (!cloudData.secure_url) {
-        setMessage("❌ Failed to upload image.");
+        console.error("Cloudinary Error:", cloudData);
+        setMessage("❌ Failed to upload image. Check preset or network.");
         setLoading(false);
         return;
       }
 
       const imageUrl = cloudData.secure_url;
 
-      // 🔹 Step 2: Send rescue data with Cloudinary URL to backend
+      // 🔹 Step 2: Send rescue data to backend
       const res = await fetch("https://wag-welfare-a0at.onrender.com/api/rescues", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           reporterName: rescueData.name,
@@ -164,9 +165,9 @@ const HeroSection = () => {
       setLoading(true);
       const res = await fetch("https://wag-welfare-a0at.onrender.com/api/volunteers", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          Authorization: `Bearer ${token}` 
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(volunteerData),
       });
