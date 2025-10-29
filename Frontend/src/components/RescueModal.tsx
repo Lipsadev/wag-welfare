@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 interface RescueModalProps {
   onClose: () => void;
-  onRescueAdded: () => void; // callback to refresh dashboard/list
+  onRescueAdded: () => void; // callback to refresh dashboard
 }
 
 const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => {
@@ -24,25 +24,29 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
       return;
     }
 
-    if (!dogName || !place || !info) {
-      setMessage("❌ Please fill all required fields.");
+    if (!image) {
+      setMessage("❌ Image is required.");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("reporterName", user?.name || "Anonymous");
       formData.append("dogName", dogName);
+      formData.append("reporterName", user?.name || "Anonymous");
       formData.append("place", place);
       formData.append("info", info);
-      if (image) formData.append("image", image);
+      formData.append("image", image);
 
-      const res = await axios.post("http://localhost:5000/api/rescues", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await axios.post(
+        "https://wag-welfare-a0at.onrender.com/api/rescues",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (res.data.success) {
         setMessage("✅ Rescue reported successfully!");
@@ -53,6 +57,7 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
         setInfo("");
         setImage(null);
 
+        // Notify parent to refresh dashboard or list
         onRescueAdded();
         onClose();
       }
@@ -72,7 +77,7 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
           ✖
         </button>
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Report a Rescue</h2>
-        {message && <p className="mb-2 text-green-600">{message}</p>}
+        {message && <p className="mb-2 text-red-600">{message}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -91,9 +96,8 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
             required
             className="w-full p-2 border rounded"
           />
-          <input
-            type="text"
-            placeholder="Information"
+          <textarea
+            placeholder="Additional Information"
             value={info}
             onChange={(e) => setInfo(e.target.value)}
             required
@@ -103,6 +107,7 @@ const RescueModal: React.FC<RescueModalProps> = ({ onClose, onRescueAdded }) => 
             type="file"
             accept="image/*"
             onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+            required
             className="w-full"
           />
 
