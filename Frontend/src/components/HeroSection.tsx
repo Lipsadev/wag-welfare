@@ -126,7 +126,7 @@ const HeroSection = () => {
 
       const data = await res.json();
       if (data.success) {
-        setMessage("✅ Rescue reported successfully!");
+        setMessage("❌ Failed to report rescue. Try again.");
         setRescueData({
           reporterName: "",
           dogName: "",
