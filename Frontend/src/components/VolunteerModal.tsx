@@ -23,7 +23,7 @@ const VolunteerModal: React.FC<VolunteerModalProps> = ({ onClose }) => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/volunteers", {
+      const res = await fetch("https://wag-welfare-a0at.onrender.com/api/volunteers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
