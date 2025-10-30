@@ -10,9 +10,9 @@ const router = express.Router();
 
 /* ------------------ CLOUDINARY CONFIGURATION ------------------ */
 cloudinary.config({
-  cloud_name: "dlgow7bhp",
-  api_key: "364112411249494",
-  api_secret: "8Vko-V7IxfWBYAzbCxTCtOF25jE",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dlgow7bhp",
+  api_key: process.env.CLOUDINARY_API_KEY || "364112411249494",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "8Vko-V7IxfWBYAzbCxTCtOF25jE",
 });
 
 /* -------------------------- MULTER SETUP -------------------------- */
@@ -31,7 +31,7 @@ router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
       });
     }
 
-    // ✅ Upload image to Cloudinary properly
+    // ✅ Upload image to Cloudinary
     const uploadedImage = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "pawrescue/rescues" },
@@ -44,7 +44,7 @@ router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
     });
 
     // ✅ Save rescue details
-    const newRescue = new Rescue({
+    const rescue = await Rescue.create({
       reporterName: reporterName || req.user.name,
       dogName,
       place,
@@ -53,16 +53,14 @@ router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
       userId: req.user._id,
     });
 
-    await newRescue.save();
-
-    res.json({
+    res.status(201).json({
       success: true,
-      message: "Rescue reported successfully",
-      rescue: newRescue,
+      message: "Rescue reported successfully.",
+      rescue,
     });
   } catch (err) {
     console.error("❌ Error reporting rescue:", err);
-    res.status(500).json({ success: false, message: "Failed to report rescue" });
+    res.status(500).json({ success: false, message: "Failed to report rescue." });
   }
 });
 
@@ -73,7 +71,7 @@ router.get("/", async (req, res) => {
     res.json({ success: true, rescues });
   } catch (err) {
     console.error("Error fetching rescues:", err);
-    res.status(500).json({ success: false, message: "Failed to fetch rescues" });
+    res.status(500).json({ success: false, message: "Failed to fetch rescues." });
   }
 });
 
@@ -84,18 +82,18 @@ router.get("/user/:id", async (req, res) => {
     res.json({ success: true, rescues });
   } catch (err) {
     console.error("Error fetching user rescues:", err);
-    res.status(500).json({ success: false, message: "Failed to fetch user's rescues" });
+    res.status(500).json({ success: false, message: "Failed to fetch user's rescues." });
   }
 });
 
-/* -------------------- DELETE: ALL RESCUES (ADMIN) ------------------- */
+/* -------------------- DELETE: ALL RESCUES (ADMIN USE) ------------------- */
 router.delete("/", async (req, res) => {
   try {
     await Rescue.deleteMany({});
-    res.json({ success: true, message: "All rescues deleted successfully" });
+    res.json({ success: true, message: "All rescues deleted successfully." });
   } catch (err) {
     console.error("Error deleting rescues:", err);
-    res.status(500).json({ success: false, message: "Failed to delete rescues" });
+    res.status(500).json({ success: false, message: "Failed to delete rescues." });
   }
 });
 
@@ -103,15 +101,19 @@ router.delete("/", async (req, res) => {
 router.post("/volunteers", async (req, res) => {
   try {
     const { name, place, phone, availability } = req.body;
+
     if (!name || !place || !phone || !availability) {
-      return res.status(400).json({ success: false, message: "All volunteer fields are required." });
+      return res.status(400).json({
+        success: false,
+        message: "All volunteer fields are required.",
+      });
     }
-    const newVolunteer = new Volunteer({ name, place, phone, availability });
-    await newVolunteer.save();
-    res.json({ success: true, message: "Volunteer added successfully", volunteer: newVolunteer });
+
+    const volunteer = await Volunteer.create({ name, place, phone, availability });
+    res.json({ success: true, message: "Volunteer added successfully.", volunteer });
   } catch (err) {
     console.error("Error adding volunteer:", err);
-    res.status(500).json({ success: false, message: "Failed to add volunteer" });
+    res.status(500).json({ success: false, message: "Failed to add volunteer." });
   }
 });
 
@@ -122,7 +124,7 @@ router.get("/volunteers", async (req, res) => {
     res.json({ success: true, volunteers });
   } catch (err) {
     console.error("Error fetching volunteers:", err);
-    res.status(500).json({ success: false, message: "Failed to fetch volunteers" });
+    res.status(500).json({ success: false, message: "Failed to fetch volunteers." });
   }
 });
 
@@ -133,12 +135,13 @@ router.post("/:id/adopt", async (req, res) => {
     const { name, email, reason } = req.body;
 
     if (!name || !email || !reason) {
-      return res.status(400).json({ success: false, message: "All fields required" });
+      return res.status(400).json({ success: false, message: "All fields are required." });
     }
 
     const dog = await Rescue.findById(id);
-    if (!dog) return res.status(404).json({ success: false, message: "Dog not found" });
+    if (!dog) return res.status(404).json({ success: false, message: "Dog not found." });
 
+    // ✅ Send email
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: parseInt(process.env.SMTP_PORT) || 587,
@@ -159,10 +162,10 @@ router.post("/:id/adopt", async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res.json({ success: true, message: "Adoption request sent successfully" });
+    res.json({ success: true, message: "Adoption request sent successfully." });
   } catch (err) {
     console.error("Error sending adoption request:", err);
-    res.status(500).json({ success: false, message: "Failed to send adoption request" });
+    res.status(500).json({ success: false, message: "Failed to send adoption request." });
   }
 });
 
