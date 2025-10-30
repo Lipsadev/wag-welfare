@@ -3,19 +3,14 @@ import mongoose from "mongoose";
 
 const petSchema = new mongoose.Schema(
   {
-    name: {
+    reporterName: {
       type: String,
       required: true,
       trim: true,
     },
-    description: {
+    info: {
       type: String,
       trim: true,
-    },
-    type: {
-      type: String,
-      enum: ["dog"], // Only dogs
-      required: true,
     },
     image: {
       type: String,
