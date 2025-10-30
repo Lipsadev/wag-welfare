@@ -5,16 +5,16 @@ import Pet from "../models/Pet.js";
 const router = express.Router();
 
 // @route   POST /api/pets
-// @desc    Create new dog
+// @desc    Add a new pet (dog)
 router.post("/", async (req, res) => {
   try {
-    const { name, description, type = "dog", image, postedBy } = req.body;
+    const { name, info, image, postedBy } = req.body;
 
     if (!name || !image || !postedBy) {
       return res.status(400).json({ message: "Name, image, and postedBy are required" });
     }
 
-    const pet = await Pet.create({ name, description, type, image, postedBy });
+    const pet = await Pet.create({ name, info, image, postedBy });
     res.status(201).json(pet);
   } catch (err) {
     console.error("Error creating pet:", err);
@@ -23,10 +23,10 @@ router.post("/", async (req, res) => {
 });
 
 // @route   GET /api/pets
-// @desc    Get all dogs
+// @desc    Get all pets
 router.get("/", async (req, res) => {
   try {
-    const pets = await Pet.find({ type: "dog" }).populate("postedBy", "name email");
+    const pets = await Pet.find().populate("postedBy", "name email").sort({ createdAt: -1 });
     res.status(200).json(pets);
   } catch (err) {
     console.error("Error fetching pets:", err);
@@ -35,11 +35,11 @@ router.get("/", async (req, res) => {
 });
 
 // @route   GET /api/pets/:id
-// @desc    Get dog by ID
+// @desc    Get a specific pet by ID
 router.get("/:id", async (req, res) => {
   try {
     const pet = await Pet.findById(req.params.id).populate("postedBy", "name email");
-    if (!pet) return res.status(404).json({ message: "Dog not found" });
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
     res.status(200).json(pet);
   } catch (err) {
     console.error("Error fetching pet:", err);
@@ -48,16 +48,16 @@ router.get("/:id", async (req, res) => {
 });
 
 // @route   PUT /api/pets/:id
-// @desc    Update dog
+// @desc    Update pet details
 router.put("/:id", async (req, res) => {
   try {
-    const { name, description, image } = req.body;
+    const { name, info, image } = req.body;
     const pet = await Pet.findByIdAndUpdate(
       req.params.id,
-      { name, description, image },
+      { name, info, image },
       { new: true }
     );
-    if (!pet) return res.status(404).json({ message: "Dog not found" });
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
     res.status(200).json(pet);
   } catch (err) {
     console.error("Error updating pet:", err);
@@ -66,12 +66,12 @@ router.put("/:id", async (req, res) => {
 });
 
 // @route   DELETE /api/pets/:id
-// @desc    Delete dog
+// @desc    Delete pet
 router.delete("/:id", async (req, res) => {
   try {
     const pet = await Pet.findByIdAndDelete(req.params.id);
-    if (!pet) return res.status(404).json({ message: "Dog not found" });
-    res.status(200).json({ message: "Dog deleted successfully" });
+    if (!pet) return res.status(404).json({ message: "Pet not found" });
+    res.status(200).json({ message: "Pet deleted successfully" });
   } catch (err) {
     console.error("Error deleting pet:", err);
     res.status(500).json({ message: "Server error" });
