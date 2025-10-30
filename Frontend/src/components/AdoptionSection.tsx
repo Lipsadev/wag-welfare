@@ -1,115 +1,118 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Filter } from "lucide-react";
+import { X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 interface Dog {
-  _id: string;
-  createdAt: string;
-  reporterName?: string;
   dogName: string;
   place: string;
   info: string;
-  image: string; // image is now mandatory (Cloudinary URL)
+  image: string;
 }
 
 const AdoptionSection = () => {
   const { user, token } = useAuth();
-  const [dogs, setDogs] = useState<Dog[]>([]);
-  const [filteredDogs, setFilteredDogs] = useState<Dog[]>([]);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
-  const [search, setSearch] = useState("");
-  const [showMore, setShowMore] = useState(false);
-
   const [adopterName, setAdopterName] = useState("");
   const [adopterEmail, setAdopterEmail] = useState("");
   const [adopterPhone, setAdopterPhone] = useState("");
   const [adoptionReason, setAdoptionReason] = useState("");
   const [adoptionStatus, setAdoptionStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
-  // Fetch dogs from backend
-  useEffect(() => {
-    const fetchDogs = async () => {
-      try {
-        const res = await fetch("https://wag-welfare-a0at.onrender.com/api/rescues");
-        const data = await res.json();
-        const dogsArray = Array.isArray(data) ? data : data.rescues || [];
-        const dogsWithImages = dogsArray.filter((dog: Dog) => dog.image);
-        const sortedDogs = dogsWithImages.sort(
-          (a: Dog, b: Dog) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setDogs(sortedDogs);
-        setFilteredDogs(sortedDogs);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchDogs();
-  }, []);
+  // 🐶 Static Dog Data
+  const dogs: Dog[] = [
+    {
+      dogName: "Snowfy",
+      place: "Delhi",
+      info: "Say hello to Snowfy, a sweet and gentle soul from Delhi who’s ready to find a loving forever home! She’s calm, affectionate, and has the kind of warmth that melts hearts instantly. If you’re in Delhi and looking for a loyal companion who’ll fill your life with love and peace, Snowfy is waiting just for you!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Tuffy",
+      place: "Delhi",
+      info: "Say hello to Tuffy, a sweet and spirited dog who’s eager to share his love and companionship. With his friendly nature and gentle heart, Tuffy is ready to make your home brighter and happier every day.",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Moti",
+      place: "Kolkata",
+      info: "Moti is a gentle and loyal companion ready to find a family who will love him as much as he loves them. With his friendly nature and affectionate heart, he’s sure to become the perfect addition to your home.",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Rocky",
+      place: "Kolkata",
+      info: "Say hello to Rocky, Kolkata’s very own bundle of joy! Energetic, affectionate, and full of mischief, Rocky is ready to fill your days with laughter, cuddles, and unconditional love.",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Bruno",
+      place: "Mumbai",
+      info: "Meet Bruno, a playful and protective boy from Mumbai who loves everyone he meets! 🐾 With his lively energy and loyal heart, he’s ready to become your best friend and bring endless joy to your life. If you’re in Mumbai and can give Bruno a loving home, please reach out today!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Lily",
+      place: "Delhi",
+      info: "Say hello to Lily, a gentle and affectionate girl from Delhi who adores cuddles and peaceful walks. 🌸 She has the sweetest temperament and is waiting to share her warmth with a caring family. If you’re in Delhi and can open your heart to Lily, please get in touch soon!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Simba",
+      place: "Kolkata",
+      info: "Simba from Kolkata is a brave and loving boy with a golden heart. 🦁 Playful, cheerful, and loyal, he’s ready to make every day brighter for his new family. If you’re in Kolkata and looking for a true companion, Simba would love to meet you!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Bella",
+      place: "Mumbai",
+      info: "Meet Bella, a kind and loving sweetheart from Mumbai who dreams of finding her forever home. 💕 She’s gentle, affectionate, and loves to be around people. If you’re in Mumbai and can offer Bella a family, please reach out — she’s waiting for you!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Tiger",
+      place: "Delhi",
+      info: "Say hi to Tiger, a confident and fun-loving boy from Delhi who’s full of life and energy! 🐶 He loves to play, cuddle, and protect the ones he loves. If you’re in Delhi and can give Tiger a safe, loving home, please contact us right away!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Oreo",
+      place: "Kolkata",
+      info: "Meet Oreo, a sweet and playful pup from Kolkata who’s just as adorable as his name! 🍪 He loves attention, playtime, and warm hugs. If you’re in Kolkata and can give Oreo the loving home he deserves, please get in touch!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+    {
+      dogName: "Coco",
+      place: "Chennai",
+      info: "Coco from Chennai is a cheerful and loyal girl who adores people and other pets alike. 🐾 With her bright eyes and loving heart, she’s ready to bring happiness wherever she goes. If you’re in Chennai and can adopt Coco, please reach out soon!",
+      image: "YOUR_IMAGE_URL_HERE",
+    },
+  ];
 
-  // Filter dogs based on search
-  const filterDogs = (value: string) => {
-    const lower = value.toLowerCase();
-    const filtered = dogs.filter(
-      (dog) =>
-        dog.dogName.toLowerCase().includes(lower) ||
-        dog.place.toLowerCase().includes(lower)
-    );
-    setFilteredDogs(filtered);
-    setShowMore(false);
-  };
-
-  const latestDogs = filteredDogs.slice(0, 3);
-  const restDogs = filteredDogs.slice(3);
-
+  // 🧡 Adoption Form Submit (Mock Only)
   const submitAdoption = async () => {
     if (!user || !token) {
       setAdoptionStatus("Login/Sign Up is required");
       return;
     }
-
     if (!adopterName || !adopterEmail || !adopterPhone || !adoptionReason) {
       setAdoptionStatus("Please fill all fields.");
       return;
     }
 
     setIsSubmitting(true);
-    try {
-      const res = await fetch(
-        `https://wag-welfare-a0at.onrender.com/api/rescues/${selectedDog?._id}/adopt`,
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            name: adopterName,
-            email: adopterEmail,
-            phone: adopterPhone,
-            reason: adoptionReason,
-          }),
-        }
-      );
-      const data = await res.json();
-      setAdoptionStatus(
-        data.success ? "✅ Request sent!" : "❌ Failed. Try again."
-      );
-      if (data.success) {
-        setAdopterName("");
-        setAdopterEmail("");
-        setAdopterPhone("");
-        setAdoptionReason("");
-      }
-    } catch (err) {
-      console.error(err);
-      setAdoptionStatus("❌ Error. Try again.");
-    }
-    setIsSubmitting(false);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setAdoptionStatus("✅ Adoption request submitted successfully!");
+      setAdopterName("");
+      setAdopterEmail("");
+      setAdopterPhone("");
+      setAdoptionReason("");
+    }, 1000);
   };
 
   return (
@@ -119,29 +122,10 @@ const AdoptionSection = () => {
           🐾 Dogs Available for Adoption
         </h2>
 
-        {/* Search */}
-        <div className="mb-8 flex gap-2">
-          <Input
-            placeholder="Search by name or place" 
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              filterDogs(e.target.value);
-            }}
-          />
-          <Button onClick={() => filterDogs(search)}>
-            <Filter className="w-4 h-4 mr-2" /> Apply
-          </Button>
-        </div>
-
-        {/* Latest Rescues */}
-        <h3 className="text-2xl font-semibold text-[#FF9933] mb-4">
-          Latest Rescues
-        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-          {latestDogs.map((dog) => (
+          {dogs.slice(0, showMore ? dogs.length : 6).map((dog, index) => (
             <div
-              key={dog._id}
+              key={index}
               className="bg-white p-4 rounded-lg shadow-md cursor-pointer transition-all duration-300 
                          hover:shadow-xl hover:-translate-y-1 hover:border hover:border-[#FF9933] hover:bg-[#FFF3E0]"
               onClick={() => setSelectedDog(dog)}
@@ -151,56 +135,22 @@ const AdoptionSection = () => {
                 alt={dog.dogName}
                 className="w-full h-48 object-cover rounded-md mb-2 transition-transform duration-300 hover:scale-105"
               />
-              <h3 className="font-bold text-lg mb-1 transition-colors hover:text-[#FF9933]">
+              <h3 className="font-bold text-lg mb-1 hover:text-[#FF9933] transition-colors">
                 {dog.dogName}
               </h3>
               <p className="text-gray-500 mb-1">{dog.place}</p>
-              <p className="text-gray-700">{dog.info}</p>
+              <p className="text-gray-700 text-sm">{dog.info.slice(0, 120)}...</p>
             </div>
           ))}
         </div>
 
-        {/* More Rescues */}
-        {restDogs.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-xl font-semibold text-gray-700 mb-3">
-              More Rescues
-            </h3>
-            <div
-              className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 transition-all duration-300 ${
-                showMore ? "max-h-full" : "max-h-0 overflow-hidden"
-              }`}
-            >
-              {restDogs.map((dog) => (
-                <div
-                  key={dog._id}
-                  className="bg-white p-4 rounded-lg shadow-md cursor-pointer transition-all duration-300 
-                             hover:shadow-xl hover:-translate-y-1 hover:border hover:border-[#FF9933] hover:bg-[#FFF3E0]"
-                  onClick={() => setSelectedDog(dog)}
-                >
-                  <img
-                    src={dog.image}
-                    alt={dog.dogName}
-                    className="w-full h-48 object-cover rounded-md mb-2 transition-transform duration-300 hover:scale-105"
-                  />
-                  <h3 className="font-bold text-lg mb-1 transition-colors hover:text-[#FF9933]">
-                    {dog.dogName}
-                  </h3>
-                  <p className="text-gray-500 mb-1">{dog.place}</p>
-                  <p className="text-gray-700">{dog.info}</p>
-                </div>
-              ))}
-            </div>
+        <div className="text-center">
+          <Button onClick={() => setShowMore(!showMore)}>
+            {showMore ? "View Less" : "View More"}
+          </Button>
+        </div>
 
-            <div className="text-center mt-6">
-              <Button onClick={() => setShowMore(!showMore)}>
-                {showMore ? "View Less" : "View More"}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Small Card Popup */}
+        {/* 🐾 Adoption Modal */}
         {selectedDog && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4 overflow-auto">
             <div className="bg-white rounded-lg p-6 w-full max-w-xl relative shadow-lg">
@@ -214,16 +164,14 @@ const AdoptionSection = () => {
               <img
                 src={selectedDog.image}
                 alt={selectedDog.dogName}
-                className="w-full h-64 md:h-48 object-contain rounded-md mb-4"
+                className="w-full h-64 object-contain rounded-md mb-4"
               />
-
               <h3 className="text-xl font-bold mb-2">{selectedDog.dogName}</h3>
               <p><strong>Place:</strong> {selectedDog.place}</p>
               <p><strong>Info:</strong> {selectedDog.info}</p>
 
               <div className="mt-4 border-t pt-4">
                 <h4 className="font-semibold mb-2">Request Adoption</h4>
-                
                 <Input
                   placeholder="Your Name"
                   value={adopterName}
@@ -257,7 +205,9 @@ const AdoptionSection = () => {
                 >
                   {isSubmitting ? "Submitting..." : "Submit Request"}
                 </Button>
-                {adoptionStatus && <p className="mt-2 text-sm text-red-600">{adoptionStatus}</p>}
+                {adoptionStatus && (
+                  <p className="mt-2 text-sm text-green-600">{adoptionStatus}</p>
+                )}
               </div>
             </div>
           </div>
